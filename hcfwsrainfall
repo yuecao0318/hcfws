@@ -1,0 +1,42 @@
+import httplib, urllib
+import xlrd
+import unicodecsv
+import datetime
+
+#sites = [1610, 1620, 1685, 1675, 1600]
+sites = [1610]
+for site in sites:
+    begin = datetime.date(2012, 6, 1)
+    end = datetime.date(2012, 6, 3)
+    for i in range((end - begin).days+1):
+        day = begin + datetime.timedelta(days=i)
+        dtime = day.strftime('%d/%m/%Y' + ' ' + '12:00 AM')
+        print dtime
+        params = urllib.urlencode({'Site': 1610, 'Period': 7, 'FromDate': dtime})
+        headers = {"Content-type": "application/x-www-form-urlencoded",
+           "Accept": "text/plain"}
+        conn = httplib.HTTPSConnection("www.harriscountyfws.org")
+        conn.request("POST", "/GageDetail/ExportStreamElevationCumulativeGrid", params, headers)
+        response = conn.getresponse()
+        print response.status, response.reason
+        data = response.read()
+        conn.close()
+        newFile = open('Rainfall %d%s.xls' % site %dtime, "wb")
+        newFile.write(data)
+        newFile.close()
+        wb = xlrd.open_workbook('Rainfall %d%s.xls' % site %dtime)
+        sh = wb.sheet_by_index(0)
+        fh = open('Rainfall %d%s.csv' % site %dtime, 'wb')
+        csv_out = unicodecsv.writer(fh, encoding='utf-8')
+        for row_number in xrange(sh.nrows):
+            csv_out.writerow(sh.row_values(row_number))
+        fh.close()
+
+
+
+
+
+
+
+
+
